@@ -15,6 +15,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 const Post = ({post}) => {
 
     const [commentOpen, setCommentOpen] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+
     const {currentUser} = useContext(AuthContext);
     
     const { isLoading, error, data } = useQuery( ['likes', post.id], () => 
@@ -26,7 +28,7 @@ const Post = ({post}) => {
     const queryClient = useQueryClient();
     
     // mutations are used to see the results immediately
-    const mutation = useMutation((liked) => {
+    const mutation = useMutation((liked) => {    
         if (liked) return makeRequest.delete("/likes?postId=" + post.id);
         return makeRequest.post("/likes", {postId: post.id});
       
@@ -44,6 +46,21 @@ const Post = ({post}) => {
     };
     //console.log(data);
 
+
+    const deleteMutation = useMutation((postId) => {
+        return makeRequest.delete("/posts/" + postId);
+      }, 
+      {
+        onSuccess: () => {
+          // Invalidate and refetch
+          queryClient.invalidateQueries(["posts"]) 
+        },
+      }
+    );
+    const handleDelete = () => {
+        deleteMutation.mutate(post.id);
+    };
+
   return (
     <div className="post">
         <div className="container">
@@ -57,7 +74,9 @@ const Post = ({post}) => {
                         <span className="date">{moment(post.createdAt).fromNow()}</span>
                     </div>
                 </div>
-                <MoreHorizOutlinedIcon/>
+                <MoreHorizOutlinedIcon onClick={() => setMenuOpen(!menuOpen)}/>
+                {(menuOpen && post.userId === currentUser.id) && 
+                <button onClick={handleDelete}>Delete</button>}
             </div>
             <div className="content">
                 <p>{post.desc}</p>

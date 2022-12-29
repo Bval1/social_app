@@ -1,2 +1,2 @@
 # Facebook/social media app
-# Uses react + nodejs + express + mysql
+## Uses react + nodejs + express + mysql
